@@ -32,11 +32,11 @@ namespace RepairToolUpgrades.RepairToolModules
             Mk2Weldspeedprefab.SetRecipe(new Nautilus.Crafting.RecipeData()
             {
                 craftAmount = 1,
-                Ingredients = new List<CraftData.Ingredient>()
+                Ingredients = new List<Ingredient>()
                 {
-                    new CraftData.Ingredient(TechType.Lubricant, 1),
-                    new CraftData.Ingredient(TechType.WiringKit, 1),
-                    new CraftData.Ingredient(RepairToolSpeedModuleMk1.Mk1Weldspeedprefabinfo.TechType, 1)
+                    new Ingredient(TechType.Lubricant, 1),
+                    new Ingredient(TechType.WiringKit, 1),
+                    new Ingredient(RepairToolSpeedModuleMk1.Mk1Weldspeedprefabinfo.TechType, 1)
                 }
             }).WithFabricatorType(UpgradesLIB.Items.Equipment.Handheldprefab.HandheldfabTreeType)
             .WithStepsToFabricatorTab("Tools", "RepairToolTab")

@@ -9,7 +9,6 @@ using UnityEngine.Assertions.Must;
 namespace LawAbidingTroller.RepairToolUpgrades;
 
 [HarmonyPatch(typeof(Welder))]
-[HarmonyDebug]
 public class WelderPatches
 {
     private static Dictionary<Welder,float> timers = new();
@@ -87,14 +86,16 @@ public class WelderPatches
 }
 
 [HarmonyPatch(typeof(CyclopsExternalDamageManager))]
-[HarmonyDebug]
 public class CyclopsExternalDamageManagerPatches
 {
     [HarmonyPatch(nameof(CyclopsExternalDamageManager.RepairPoint))]
     [HarmonyPrefix]
     public static bool RepairPoint_Prefix(CyclopsExternalDamageManager __instance, CyclopsDamagePoint point)
     {
+        
         __instance.unusedDamagePoints.Add(point);
+        float healthBack = __instance.subLiveMixin.maxHealth / __instance.damagePoints.Length;
+        PatchData.damagePoints.Add(point, new PatchData(healthBack, __instance));
         if (__instance.damagePoints.Length - __instance.unusedDamagePoints.Count == 0)
         {
             __instance.subLiveMixin.AddHealth(__instance.subLiveMixin.maxHealth);
@@ -105,6 +106,20 @@ public class CyclopsExternalDamageManagerPatches
         }
         __instance.ToggleLeakPointsBasedOnDamage();
         return false;
+    }
+}
+
+[HarmonyPatch(typeof(CyclopsDamagePoint))]
+public class CyclopsDamagePointPatches
+{
+    [HarmonyPatch(nameof(CyclopsDamagePoint.OnRepair))]
+    [HarmonyPostfix]
+    public static void OnRepair_Postfix(CyclopsDamagePoint __instance)
+    {
+        PatchData.damagePoints.TryGetValue(__instance, out var point);
+        if (point == null) return;
+        point.SubLiveMixin.subLiveMixin.AddHealth(point.HealthBack);
+        PatchData.damagePoints.Remove(__instance);
     }
 }
 
@@ -119,5 +134,18 @@ public class UpgradeData
     {
         this.Speedmultiplier = speedmultiplier;
         this.Efficiency = efficiency;
+    }
+}
+
+public class PatchData
+{
+    public static Dictionary<CyclopsDamagePoint, PatchData> damagePoints = new Dictionary<CyclopsDamagePoint, PatchData>();
+    public float HealthBack;
+    public CyclopsExternalDamageManager SubLiveMixin;
+
+    public PatchData(float healthBack, CyclopsExternalDamageManager subLiveMixin)
+    {
+        HealthBack = healthBack;
+        SubLiveMixin = subLiveMixin;
     }
 }

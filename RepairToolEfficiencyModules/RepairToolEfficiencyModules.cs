@@ -10,7 +10,7 @@ public class RepairToolEfficiencyModules
 {
     public static PrefabInfo[] PrefabInfos = new PrefabInfo[3];
     public static CustomPrefab[] CustomPrefabs = new CustomPrefab[3];
-    public static IngredientList[] IngredientLists = { new(new(TechType.Lubricant), new(TechType.Battery)), new(new(TechType.Silicone), new(TechType.WiringKit)), new(new(TechType.AdvancedWiringKit), new(TechType.Aerogel)) };
+    public static IngredientList[] IngredientLists = { new(new(TechType.Lubricant,1), new(TechType.Battery,1)), new(new(TechType.Silicone,1), new(TechType.WiringKit,1)), new(new(TechType.AdvancedWiringKit,1), new(TechType.Aerogel,1)) };
     public static void RegisterAll()
     {
         var currentmultiplier = 2f;
@@ -31,14 +31,14 @@ public class RepairToolEfficiencyModules
             var upgradedata = new UpgradeData(0, currentmultiplier);
             if (i > 0)
             {
-                IngredientLists[i].Ingredients.Add(new CraftData.Ingredient(PrefabInfos[i-1].TechType, 1));
+                IngredientLists[i].Ingredients.Add(new Ingredient(PrefabInfos[i-1].TechType, 1));
             }
             Register(upgradedata, PrefabInfos[i], CustomPrefabs[i], i+1, IngredientLists[i].Ingredients);
             if (i == 0) continue;
             currentmultiplier += i+1;
         }
     }
-    public static void Register(UpgradeData upgrade, PrefabInfo prefabInfo, CustomPrefab prefab, int mk, List<CraftData.Ingredient> recipe)
+    public static void Register(UpgradeData upgrade, PrefabInfo prefabInfo, CustomPrefab prefab, int mk, List<Ingredient> recipe)
     {
         UpgradeData.UpgradeDataDict.Add(prefabInfo.TechType, upgrade);
         var clone = new CloneTemplate(prefabInfo, TechType.VehiclePowerUpgradeModule);
@@ -64,9 +64,9 @@ public class RepairToolEfficiencyModules
 
 public class IngredientList
 {
-    public List<CraftData.Ingredient> Ingredients = new();
+    public List<Ingredient> Ingredients = new();
 
-    public IngredientList(params  CraftData.Ingredient[] ingredients)
+    public IngredientList(params  Ingredient[] ingredients)
     {
         foreach (var ingredient in ingredients)
         {
