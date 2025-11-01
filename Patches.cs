@@ -86,26 +86,15 @@ public class WelderPatches
 }
 
 [HarmonyPatch(typeof(CyclopsExternalDamageManager))]
-public class CyclopsExternalDamageManagerPatches
+[HarmonyPatch(nameof(CyclopsExternalDamageManager.RepairPoint))]
+public class CyclopsExternalDamageManager_RepairPoint_Patch
 {
-    [HarmonyPatch(nameof(CyclopsExternalDamageManager.RepairPoint))]
-    [HarmonyPrefix]
-    public static bool RepairPoint_Prefix(CyclopsExternalDamageManager __instance, CyclopsDamagePoint point)
+    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
     {
-        
-        __instance.unusedDamagePoints.Add(point);
-        float healthBack = __instance.subLiveMixin.maxHealth / __instance.damagePoints.Length;
-        PatchData.damagePoints.Add(point, new PatchData(healthBack, __instance));
-        if (__instance.damagePoints.Length - __instance.unusedDamagePoints.Count == 0)
-        {
-            __instance.subLiveMixin.AddHealth(__instance.subLiveMixin.maxHealth);
-        }
-        else
-        {
-            __instance.subLiveMixin.AddHealth(1f);
-        }
-        __instance.ToggleLeakPointsBasedOnDamage();
-        return false;
+        var codeMatcher = new CodeMatcher(instructions).MatchForward(false, new CodeMatch(OpCodes.Ldarg_0), new CodeMatch(OpCodes.Ldfld,  typeof(CyclopsExternalDamageManager).GetField("subLiveMixin", BindingFlags.Public)));
+        codeMatcher.RemoveInstructionsInRange(codeMatcher.Pos, codeMatcher.Length - 1).
+            Insert(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(PatchData),nameof(PatchData.RepairPointRecode), new []{typeof(CyclopsExternalDamageManager), typeof(CyclopsDamagePoint)})));
+        return codeMatcher.InstructionEnumeration();
     }
 }
 
@@ -147,5 +136,23 @@ public class PatchData
     {
         HealthBack = healthBack;
         SubLiveMixin = subLiveMixin;
+    }
+    
+    public static bool RepairPointRecode(CyclopsExternalDamageManager __instance, CyclopsDamagePoint point)
+    {
+        
+        __instance.unusedDamagePoints.Add(point);
+        float healthBack = __instance.subLiveMixin.maxHealth / __instance.damagePoints.Length;
+        PatchData.damagePoints.Add(point, new PatchData(healthBack, __instance));
+        if (__instance.damagePoints.Length - __instance.unusedDamagePoints.Count == 0)
+        {
+            __instance.subLiveMixin.AddHealth(__instance.subLiveMixin.maxHealth);
+        }
+        else
+        {
+            __instance.subLiveMixin.AddHealth(1f);
+        }
+        __instance.ToggleLeakPointsBasedOnDamage();
+        return false;
     }
 }
