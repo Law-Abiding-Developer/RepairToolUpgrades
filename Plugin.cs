@@ -18,7 +18,10 @@ namespace LawAbidingTroller.RepairToolUpgrades
     {
         public new static ManualLogSource Logger { get; private set; }
 
-        public static Config LdConfig;
+        public static GameInput.Button OpenUpgradesButton = EnumHandler.AddEntry<GameInput.Button>("OpenRTUpgrades")
+            .CreateInput("Open Repair Tool Upgrades")
+            .WithKeyboardBinding(GameInputHandler.Paths.Keyboard.B)
+            .WithCategory("Tools Upgrades");
         private static Assembly Assembly { get; } = Assembly.GetExecutingAssembly();
 
         public static TechCategory Repairtoolupgrades = EnumHandler.AddEntry<TechCategory>("RepairToolUpgrades").WithPdaInfo("Repair Tool Upgrades").RegisterToTechGroup(UpgradesLIB.Plugin.toolupgrademodules);
@@ -28,8 +31,6 @@ namespace LawAbidingTroller.RepairToolUpgrades
             // set project-scoped logger instance
             Logger = base.Logger;
             
-            // register mod options
-            LdConfig = OptionsPanelHandler.RegisterModOptions<Config>();
             Logger.LogInfo($"Awake method is running. Config Options loaded. Dependencies exist. Loading {PluginInfo.PLUGIN_NAME}...");
             
             // create the storage

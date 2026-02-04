@@ -60,7 +60,7 @@ public class WelderPatches
         //Set the ItemsContainer's allowed tech
         tempstorage.container.SetAllowedTechTypes(allowedtech);
         //Check if the keybind was pressed (im lazy to use the new input system
-        if (Input.GetKeyDown(Config.OpenUpgradesContainerkeybind))
+        if (GameInput.GetButtonDown(Plugin.OpenUpgradesButton))
         {
             //Is it already open?
             if (tempstorage.open) { ErrorMessage.AddWarning("Close 'REPAIR TOOL' to open it" ); return; }
@@ -74,12 +74,16 @@ public class WelderPatches
     [HarmonyPrefix]
     public static void Weld_Prefix(Welder __instance)
     {
+        Plugin.Logger.LogDebug($"activeWeldTarget: {__instance.activeWeldTarget}, .name: {__instance.activeWeldTarget.name}");
+        
         __instance.healthPerWeld = 1f;
+        if (__instance.activeWeldTarget.name.Equals("DamagePoint")) __instance.healthPerWeld *= 2;
         __instance.weldEnergyCost = 0.01f;
         var tempstorage = __instance.GetComponent<StorageContainer>();
         if (tempstorage == null) {Plugin.Logger.LogError("Failed to get storage container component for Repair tool!");return;}
         UpgradeData tempdata;
         float highestefficiency = 0;
+        if (tempstorage.container == null) return;
         foreach (var item in tempstorage.container.GetItemTypes())
         {
             if (!UpgradeData.UpgradeDataDict.TryGetValue(item, out tempdata)) { Plugin.Logger.LogError($"Cannot get TechType '{item}' from dictionary '{nameof(UpgradeData.UpgradeDataDict)}'");continue;}
